@@ -121,11 +121,24 @@ final class HomepageViewController: UIViewController,
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        viewAppeared = true
+        store.dispatch(
+            HomepageAction(
+                seenOnce: true,
+                windowUUID: windowUUID,
+                actionType: HomepageActionType.viewDidAppear
+            )
+        )
     }
 
     override func viewWillDisappear(_ animated: Bool) {
-        <#code#>
+        super.viewWillDisappear(animated)
+        store.dispatch(
+            HomepageAction(
+                seenOnce: false,
+                windowUUID: windowUUID,
+                actionType: HomepageActionType.viewWillDisappear
+            )
+        )
     }
 
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -351,24 +364,18 @@ final class HomepageViewController: UIViewController,
 
             return headerCell
 
-        case .topSite(let site, let textColor):
+        case .topSite(let state, let textColor):
             guard let topSiteCell = collectionView?.dequeueReusableCell(cellType: TopSiteCell.self, for: indexPath) else {
                 return UICollectionViewCell()
             }
 
             topSiteCell.configure(
-                site,
+                state,
                 position: indexPath.row,
                 theme: currentTheme,
                 textColor: textColor
             )
-            store.dispatch(
-                TopSitesAction(
-                    telemetryMetadata: SponsoredTelemetryMetadata(topSiteState: site, position: indexPath.row),
-                    windowUUID: windowUUID,
-                    actionType: TopSitesActionType.cellConfigured
-                )
-            )
+            handleTopSiteImpression(state: state, position: indexPath.row)
             return topSiteCell
 
         case .topSiteEmpty:
@@ -567,7 +574,26 @@ final class HomepageViewController: UIViewController,
         )
     }
 
-    private func
+    private func handleTopSiteImpression(state: TopSiteState, position: Int) {
+        guard homepageState.hasSeenOnce else { return }
+        store.dispatch(
+            TopSitesAction(
+                telemetryMetadata: SponsoredTelemetryMetadata(topSiteState: state, position: position),
+                windowUUID: windowUUID,
+                actionType: TopSitesActionType.cellConfigured
+            )
+        )
+    }
+
+    private func handleTopSiteTapped(state: TopSiteState, position: Int) {
+        store.dispatch(
+            TopSitesAction(
+                telemetryMetadata: SponsoredTelemetryMetadata(topSiteState: state, position: position),
+                windowUUID: windowUUID,
+                actionType: TopSitesActionType.didSelectItem
+            )
+        )
+    }
 
     // MARK: - UICollectionViewDelegate
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -592,6 +618,7 @@ final class HomepageViewController: UIViewController,
                     actionType: NavigationBrowserActionType.tapOnCell
                 )
             )
+            handleTopSiteTapped(state: state, position: indexPath.row)
         case .pocket(let story):
             store.dispatch(
                 NavigationBrowserAction(

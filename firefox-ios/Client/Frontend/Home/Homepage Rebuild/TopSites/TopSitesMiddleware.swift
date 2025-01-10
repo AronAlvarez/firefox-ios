@@ -32,6 +32,7 @@ final class TopSitesMiddleware: FeatureFlaggable {
             searchEnginesManager: profile.searchEnginesManager
         )
         self.logger = logger
+        self.unifiedAdsTelemetry = unifiedAdsTelemetry
     }
 
     lazy var topSitesProvider: Middleware<AppState> = { state, action in
@@ -51,6 +52,8 @@ final class TopSitesMiddleware: FeatureFlaggable {
             self.topSitesManager.removeTopSite(site)
         case TopSitesActionType.cellConfigured:
             self.handleSponsoredImpressionTracking(for: action)
+        case TopSitesActionType.didSelectItem:
+            self.handleSponsoredClickTracking(for: action)
         default:
             break
         }

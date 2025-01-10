@@ -6,9 +6,11 @@ import Common
 import Redux
 
 final class HomepageAction: Action {
+    var seenOnce: Bool?
     var showiPadSetup: Bool?
 
-    init(showiPadSetup: Bool? = nil, windowUUID: WindowUUID, actionType: any ActionType) {
+    init(seenOnce: Bool? = nil, showiPadSetup: Bool? = nil, windowUUID: WindowUUID, actionType: any ActionType) {
+        self.seenOnce = seenOnce
         self.showiPadSetup = showiPadSetup
         super.init(windowUUID: windowUUID, actionType: actionType)
     }
@@ -17,4 +19,6 @@ final class HomepageAction: Action {
 enum HomepageActionType: ActionType {
     case initialize
     case traitCollectionDidChange
+    case viewDidAppear
+    case viewWillDisappear
 }

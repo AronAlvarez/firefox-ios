@@ -30,7 +30,7 @@ final class TopSitesAction: Action {
         self.topSites = topSites
         self.numberOfRows = numberOfRows
         self.numberOfTilesPerRow = numberOfTilesPerRow
-        self.metadata = metadata
+        self.telemetryMetadata = telemetryMetadata
         super.init(windowUUID: windowUUID, actionType: actionType)
     }
 }
@@ -42,6 +42,7 @@ enum TopSitesActionType: ActionType {
     case toggleShowSectionSetting
     case toggleShowSponsoredSettings
     case cellConfigured
+    case didSelectItem
 }
 
 enum TopSitesMiddlewareActionType: ActionType {

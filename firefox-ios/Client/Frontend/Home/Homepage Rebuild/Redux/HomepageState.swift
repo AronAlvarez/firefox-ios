@@ -6,13 +6,14 @@ import Common
 import Redux
 
 struct HomepageState: ScreenState, Equatable {
+    var hasSeenOnce: Bool
     var windowUUID: WindowUUID
 
     // Homepage sections state in the order they appear on the collection view
-   let headerState: HeaderState
-   let topSitesState: TopSitesSectionState
-   let pocketState: PocketState
-   let wallpaperState: WallpaperState
+    let headerState: HeaderState
+    let topSitesState: TopSitesSectionState
+    let pocketState: PocketState
+    let wallpaperState: WallpaperState
 
     init(appState: AppState, uuid: WindowUUID) {
         guard let homepageState = store.state.screenState(
@@ -29,17 +30,19 @@ struct HomepageState: ScreenState, Equatable {
             headerState: homepageState.headerState,
             topSitesState: homepageState.topSitesState,
             pocketState: homepageState.pocketState,
-            wallpaperState: homepageState.wallpaperState
+            wallpaperState: homepageState.wallpaperState,
+            hasSeenOnce: homepageState.hasSeenOnce
         )
     }
 
-    init(windowUUID: WindowUUID) {
+    init(windowUUID: WindowUUID, hasSeenOnce: Bool = false) {
         self.init(
             windowUUID: windowUUID,
             headerState: HeaderState(windowUUID: windowUUID),
             topSitesState: TopSitesSectionState(windowUUID: windowUUID),
             pocketState: PocketState(windowUUID: windowUUID),
-            wallpaperState: WallpaperState(windowUUID: windowUUID)
+            wallpaperState: WallpaperState(windowUUID: windowUUID),
+            hasSeenOnce: hasSeenOnce
         )
     }
 
@@ -48,13 +51,15 @@ struct HomepageState: ScreenState, Equatable {
         headerState: HeaderState,
         topSitesState: TopSitesSectionState,
         pocketState: PocketState,
-        wallpaperState: WallpaperState
+        wallpaperState: WallpaperState,
+        hasSeenOnce: Bool
     ) {
         self.windowUUID = windowUUID
         self.headerState = headerState
         self.topSitesState = topSitesState
         self.pocketState = pocketState
         self.wallpaperState = wallpaperState
+        self.hasSeenOnce = hasSeenOnce
     }
 
     static let reducer: Reducer<Self> = { state, action in
@@ -70,7 +75,8 @@ struct HomepageState: ScreenState, Equatable {
                 headerState: HeaderState.reducer(state.headerState, action),
                 topSitesState: TopSitesSectionState.reducer(state.topSitesState, action),
                 pocketState: PocketState.reducer(state.pocketState, action),
-                wallpaperState: WallpaperState.reducer(state.wallpaperState, action)
+                wallpaperState: WallpaperState.reducer(state.wallpaperState, action),
+                hasSeenOnce: state.hasSeenOnce
             )
         default:
             return defaultState(from: state, action: action)
@@ -95,7 +101,8 @@ struct HomepageState: ScreenState, Equatable {
             headerState: headerState,
             topSitesState: topSitesState,
             pocketState: pocketState,
-            wallpaperState: wallpaperState
+            wallpaperState: wallpaperState,
+            hasSeenOnce: state.hasSeenOnce
         )
     }
 
