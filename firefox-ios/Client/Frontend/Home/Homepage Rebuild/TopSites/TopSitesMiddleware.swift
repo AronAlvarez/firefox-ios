@@ -7,8 +7,9 @@ import Foundation
 import Redux
 import Storage
 
-final class TopSitesMiddleware {
+final class TopSitesMiddleware: FeatureFlaggable {
     private let topSitesManager: TopSitesManagerInterface
+    private let unifiedAdsTelemetry: UnifiedAdsCallbackTelemetry
     private let logger: Logger
 
     // Raw data to build top sites with, we may want to revisit and fetch only the number of top sites we want
@@ -19,7 +20,8 @@ final class TopSitesMiddleware {
     init(
         profile: Profile = AppContainer.shared.resolve(),
         topSitesManager: TopSitesManagerInterface? = nil,
-        logger: Logger = DefaultLogger.shared
+        logger: Logger = DefaultLogger.shared,
+        unifiedAdsTelemetry: UnifiedAdsCallbackTelemetry = DefaultUnifiedAdsCallbackTelemetry()
     ) {
         self.topSitesManager = topSitesManager ?? TopSitesManager(
             profile: profile,
@@ -47,6 +49,8 @@ final class TopSitesMiddleware {
         case ContextMenuActionType.tappedOnRemoveTopSite:
             guard let site = self.getSite(for: action) else { return }
             self.topSitesManager.removeTopSite(site)
+        case TopSitesActionType.cellConfigured:
+            self.handleSponsoredImpressionTracking(for: action)
         default:
             break
         }
@@ -110,5 +114,42 @@ final class TopSitesMiddleware {
                 actionType: TopSitesMiddlewareActionType.retrievedUpdatedSites
             )
         )
+    }
+
+    // MARK: Telemetry
+    private func handleSponsoredImpressionTracking(for action: Action) {
+        guard let telemetryMetadata = (action as? TopSitesAction)?.telemetryMetadata else {
+            self.logger.log(
+                "Unable to retrieve telemetryMetadata for \(action.actionType)",
+                level: .warning,
+                category: .homepage
+            )
+            return
+        }
+//            guard !hasSentImpressionForTile(topSiteState) else { return }
+        // Only sending sponsored tile impressions for now
+        guard let tile = telemetryMetadata.topSiteState.site as? SponsoredTile else { return }
+        if featureFlags.isFeatureEnabled(.unifiedAds, checking: .buildOnly) {
+            unifiedAdsTelemetry.sendImpressionTelemetry(tile: tile, position: telemetryMetadata.position)
+        } else {
+            SponsoredTileTelemetry.sendImpressionTelemetry(tile: tile, position: telemetryMetadata.position)
+        }
+    }
+
+    private func handleSponsoredClickTracking(for action: Action) {
+        guard let telemetryMetadata = (action as? TopSitesAction)?.telemetryMetadata else {
+            self.logger.log(
+                "Unable to retrieve telemetryMetadata for \(action.actionType)",
+                level: .warning,
+                category: .homepage
+            )
+            return
+        }
+        guard let tile = telemetryMetadata.topSiteState.site as? SponsoredTile else { return }
+        if featureFlags.isFeatureEnabled(.unifiedAds, checking: .buildOnly) {
+            unifiedAdsTelemetry.sendClickTelemetry(tile: tile, position: telemetryMetadata.position)
+        } else {
+            SponsoredTileTelemetry.sendClickTelemetry(tile: tile, position: telemetryMetadata.position)
+        }
     }
 }

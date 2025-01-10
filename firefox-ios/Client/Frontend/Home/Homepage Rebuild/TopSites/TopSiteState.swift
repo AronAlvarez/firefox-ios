@@ -7,7 +7,7 @@ import Storage
 import Shared
 
 /// Top site UI class, used in the homepage top site section
-final class TopSiteState: Hashable, Equatable {
+final class TopSiteState: Hashable, Equatable, FeatureFlaggable {
     var site: Site
     var title: String
 
@@ -46,15 +46,6 @@ final class TopSiteState: Hashable, Equatable {
         } else {
             title = site.title
         }
-    }
-
-    // MARK: Telemetry
-
-    func impressionTracking(position: Int) {
-        // Only sending sponsored tile impressions for now
-        guard let tile = site as? SponsoredTile else { return }
-
-        SponsoredTileTelemetry.sendImpressionTelemetry(tile: tile, position: position)
     }
 
     func getTelemetrySiteType() -> String {

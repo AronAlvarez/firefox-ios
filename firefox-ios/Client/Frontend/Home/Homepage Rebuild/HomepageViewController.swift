@@ -56,6 +56,11 @@ final class HomepageViewController: UIViewController,
     private let logger: Logger
     private let toastContainer: UIView
 
+    // TODO:
+    /// Record view appeared is sent multiple times, this avoids recording telemetry multiple times for one appearance
+    private var viewAppeared = false
+
+
     // MARK: - Initializers
     init(windowUUID: WindowUUID,
          themeManager: ThemeManager = AppContainer.shared.resolve(),
@@ -112,6 +117,15 @@ final class HomepageViewController: UIViewController,
         listenForThemeChange(view)
         applyTheme()
         addTapGestureRecognizerToDismissKeyboard()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        viewAppeared = true
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        <#code#>
     }
 
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -348,6 +362,13 @@ final class HomepageViewController: UIViewController,
                 theme: currentTheme,
                 textColor: textColor
             )
+            store.dispatch(
+                TopSitesAction(
+                    telemetryMetadata: SponsoredTelemetryMetadata(topSiteState: site, position: indexPath.row),
+                    windowUUID: windowUUID,
+                    actionType: TopSitesActionType.cellConfigured
+                )
+            )
             return topSiteCell
 
         case .topSiteEmpty:
@@ -545,6 +566,8 @@ final class HomepageViewController: UIViewController,
             )
         )
     }
+
+    private func
 
     // MARK: - UICollectionViewDelegate
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {

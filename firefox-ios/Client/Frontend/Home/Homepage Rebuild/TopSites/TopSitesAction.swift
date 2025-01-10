@@ -5,17 +5,24 @@ import Common
 import Foundation
 import Redux
 
+struct SponsoredTelemetryMetadata {
+    let topSiteState: TopSiteState
+    let position: Int
+}
+
 final class TopSitesAction: Action {
     var topSites: [TopSiteState]?
     var numberOfRows: Int?
     var numberOfTilesPerRow: Int?
     var isEnabled: Bool?
+    var telemetryMetadata: SponsoredTelemetryMetadata?
 
     init(
         topSites: [TopSiteState]? = nil,
         numberOfRows: Int? = nil,
         numberOfTilesPerRow: Int? = nil,
         isEnabled: Bool? = nil,
+        telemetryMetadata: SponsoredTelemetryMetadata? = nil,
         windowUUID: WindowUUID,
         actionType: any ActionType
     ) {
@@ -23,6 +30,7 @@ final class TopSitesAction: Action {
         self.topSites = topSites
         self.numberOfRows = numberOfRows
         self.numberOfTilesPerRow = numberOfTilesPerRow
+        self.metadata = metadata
         super.init(windowUUID: windowUUID, actionType: actionType)
     }
 }
@@ -33,6 +41,7 @@ enum TopSitesActionType: ActionType {
     case updatedNumberOfTilesPerRow
     case toggleShowSectionSetting
     case toggleShowSponsoredSettings
+    case cellConfigured
 }
 
 enum TopSitesMiddlewareActionType: ActionType {
