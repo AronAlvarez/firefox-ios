@@ -750,12 +750,11 @@ final class HomepageViewController: UIViewController,
         )
     }
 
-    private func dispatchOpenTopSitesAction(at index: Int, tileType: String, urlString: String) {
+    private func dispatchOpenTopSitesAction(at index: Int, config: TopSiteConfiguration) {
         let config = TopSitesTelemetryConfig(
             isZeroSearch: isZeroSearch,
             position: index,
-            tileType: tileType,
-            url: urlString
+            topSiteConfig: config
         )
         store.dispatch(
             TopSitesAction(
@@ -777,19 +776,15 @@ final class HomepageViewController: UIViewController,
             return
         }
         switch item {
-        case .topSite(let state, _):
+        case .topSite(let config, _):
             let destination = NavigationDestination(
                 .link,
-                url: state.site.url.asURL,
-                isGoogleTopSite: state.isGoogleURL,
+                url: config.site.url.asURL,
+                isGoogleTopSite: config.isGoogleURL,
                 visitType: .link
             )
             dispatchNavigationBrowserAction(with: destination, actionType: NavigationBrowserActionType.tapOnCell)
-            dispatchOpenTopSitesAction(
-                at: indexPath.item,
-                tileType: state.getTelemetrySiteType,
-                urlString: state.site.url
-            )
+            dispatchOpenTopSitesAction(at: indexPath.item, config: config)
 
         case .jumpBackIn(let config):
             store.dispatch(
@@ -825,6 +820,23 @@ final class HomepageViewController: UIViewController,
         default:
             return
         }
+    }
+
+    func collectionView(
+        _ collectionView: UICollectionView,
+        willDisplay
+        cell: UICollectionViewCell,
+        forItemAt indexPath: IndexPath
+    ) {
+        guard let item = dataSource?.itemIdentifier(for: indexPath) else {
+            return
+        }
+        store.dispatch(
+            HomepageAction(
+                windowUUID: self.windowUUID,
+                actionType: HomepageActionType.viewWillAppear
+            )
+        )
     }
 
     // MARK: - UIPopoverPresentationControllerDelegate - Context Hints (CFR)
